@@ -1,0 +1,112 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Bar</title>
+  <!-- Link para o CSS externo -->
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Reset de estilos */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+    }
+
+    nav {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
+
+    nav a {
+        background: #fff;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        border-radius: 5px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+        text-align: center;
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .buttons {
+        margin-top: 20px;
+    }
+
+    .buttons button {
+        background: black;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        margin: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .buttons button:hover {
+        background: #333;
+    }
+  </style>
+</head>
+<body>
+<!-- Barra de navegação -->
+<nav>
+  <a class="buttons" th:href="@{/index}">
+    &#8592; Início
+  </a>
+</nav>
+
+
+<!-- Conteúdo principal -->
+<div class="container">
+  <h1>STOCK BAR</h1>
+  <p>O que deseja fazer?</p>
+
+  <!-- Botões de navegação -->
+  <div class="buttons">
+    <a data-th-href="@{/cadastroClienteComanda}">
+      <button>Cadastrar cliente</button>
+    </a>
+    <a data-th-href="@{/cadastroProdutoComanda}">
+      <button>Cadastrar itens</button>
+    </a>
+    <a data-th-href="@{/consultaComanda}">
+      <button>Consultar comanda</button>
+    </a>
+  </div>
+</div>
+
+<!-- Importando Angular -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.2/angular.min.js"></script>
+<script>
+  var app = angular.module('StockBarApp', []);
+
+  // Definição do controlador
+  app.controller('MainController', function($scope) {
+      $scope.navigate = function(page) {
+          window.location.href = '/' + page;
+      };
+  });
+</script>
+</body>
+</html>

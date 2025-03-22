@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:data-th="http://www.w3.org/1999/xhtml" lang="pt-br">
+<head>
+  <meta charset="UTF-8"> <!-- Define a codificação do documento como UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configura o layout responsivo -->
+  <title>Stock Bar</title> <!-- Define o título da página -->
+
+  <style>
+    /* Reset de margem e padding para todos os elementos */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Configuração geral do corpo da página */
+    body {
+        font-family: Arial, sans-serif; /* Define a fonte */
+        background-color: #d3d3d3; /* Define a cor de fundo */
+        display: flex; /* Usa flexbox para centralizar o conteúdo */
+        justify-content: center; /* Centraliza horizontalmente */
+        align-items: center; /* Centraliza verticalmente */
+        height: 100vh; /* Define a altura total da tela */
+    }
+
+    /* Estilização do contêiner principal */
+    .container {
+        text-align: center; /* Centraliza o texto */
+        background: white; /* Define fundo branco para contraste */
+        padding: 30px; /* Adiciona espaço interno */
+        border-radius: 10px; /* Borda arredondada */
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); /* Sombra suave */
+    }
+
+    /* Estilização do título principal */
+    h1 {
+        font-size: 40px; /* Define tamanho do texto */
+        font-weight: bold; /* Deixa o texto em negrito */
+        margin-bottom: 10px; /* Adiciona espaçamento inferior */
+    }
+
+    /* Estilização do parágrafo */
+    p {
+        font-size: 18px; /* Define tamanho do texto */
+        margin-bottom: 20px; /* Adiciona espaçamento inferior */
+    }
+
+    /* Estilização do contêiner de botões */
+    .bttons {
+        display: flex; /* Usa flexbox para organizar os botões */
+        justify-content: center; /* Centraliza os botões */
+        gap: 15px; /* Adiciona espaçamento entre os botões */
+        margin-bottom: 20px; /* Adiciona espaço inferior */
+    }
+
+    /* Estilização dos botões */
+    button {
+        background-color: black; /* Define a cor de fundo */
+        color: white; /* Define a cor do texto */
+        font-size: 16px; /* Define tamanho do texto */
+        padding: 10px 20px; /* Define espaçamento interno */
+        border: none; /* Remove a borda */
+        cursor: pointer; /* Altera o cursor para indicar que é clicável */
+        border-radius: 5px; /* Arredonda as bordas */
+        transition: 0.3s; /* Adiciona transição suave */
+    }
+
+    /* Efeito de hover nos botões */
+    button:hover {
+        background-color: #333; /* Altera a cor do botão ao passar o mouse */
+    }
+
+    /* Estilização específica do botão de consultas */
+    .consultas {
+        display: block; /* Faz o botão ocupar a largura total */
+        margin: auto; /* Centraliza horizontalmente */
+    }
+  </style>
+</head>
+<body>
+<!-- Contêiner principal -->
+<div class="container">
+  <h1>STOCK BAR</h1> <!-- Título da página -->
+  <p>Selecione a opção desejada:</p> <!-- Texto informativo -->
+
+  <!-- Grupo de botões -->
+  <div class="bttons">
+    <a data-th-href="@{/comanda}">
+      <button>Comandas</button>
+    </a>
+
+    <a data-th-href="@{/cadastroBebidasEstoque}">
+      <button>Cadastro de bebidas</button>
+    </a>
+
+    <a data-th-href="@{/cadastrarFornecedor}">
+      <button>Cadastro de fornecedor</button>
+    </a>
+  </div>
+
+  <!-- Botão separado para consultas -->
+  <a data-th-href="@{/telaConsulta}">
+    <button class="consultas">Consultas</button>
+  </a>
+
+
+
+  <script>
+  /**
+   * Função que realiza a navegação para diferentes páginas
+   * @param {string} route - Nome da rota para onde o usuário será redirecionado
+   */
+  function navigate(route) {
+      window.location.href = '/' + route; // Redireciona o usuário para a rota correspondente
+  }
+</script>
+</body>
+</html>

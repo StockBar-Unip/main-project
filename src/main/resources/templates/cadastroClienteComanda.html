@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Bar - Cadastro</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .container {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #e0e0e0;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+        h1 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        p {
+            font-size: 14px;
+            color: #555;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .register-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .comanda-number {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: green;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<a href="/index" class="back-button">&#8592; Início</a>
+
+<div class="container">
+    <h1>STOCK BAR</h1>
+    <p>Cadastre o cliente para gerar o número da comanda:</p>
+
+    <form id="comandaForm" onsubmit="cadastrarComanda(event)">
+        <label for="nomeCliente">Digite o nome do cliente:</label>
+        <input type="text" id="nomeCliente" name="nomeCliente" placeholder="Digite o nome do cliente" required>
+        <button class="register-button" type="submit">Cadastrar</button>
+    </form>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+    async function cadastrarComanda(event) {
+    event.preventDefault();
+
+    const nomeCliente = document.getElementById("nomeCliente").value;
+    const resultadoDiv = document.getElementById("resultado");
+
+    try {
+        const response = await fetch("/comandas", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ nomeCliente })
+        });
+
+        if (response.ok) {
+            const numeroComanda = await response.json();
+            resultadoDiv.innerHTML = `<p class="comanda-number">Comanda criada com sucesso! Número: ${numeroComanda}</p>`;
+        } else {
+            const mensagemErro = await response.text();
+            resultadoDiv.innerHTML = `<p class="error-message">${mensagemErro}</p>`;
+        }
+    } catch (error) {
+        resultadoDiv.innerHTML = `<p class="error-message">Erro ao se conectar ao servidor.</p>`;
+    }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Stock Bar</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+        .container {
+            background: white;
+            width: 400px;
+            padding: 20px;
+            margin-top: 50px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        label {
+            align-self: flex-start;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .add-button {
+            background: black;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        .add-button:hover {
+            background: #333;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<button class="back-button top-bar">
+    <a href="/comanda">
+        &#8592; Início
+    </a>
+</button>
+<div class="container">
+    <h1>STOCK BAR</h1>
+    <p>Adicione os produtos na comanda</p>
+
+    <form id="produtoForm">
+        <label for="idComanda">Digite o número da comanda</label>
+        <input type="text" id="idComanda" name="idComanda" placeholder="Digite o número da comanda" required>
+
+        <label for="nomeProduto">Selecione o produto:</label>
+        <select id="nomeProduto" name="nomeProduto" required>
+            <option value="" disabled selected>Selecione um produto</option>
+            <!-- Os produtos serão carregados dinamicamente -->
+        </select>
+
+        <label for="quantidadeProduto">Informe a quantidade:</label>
+        <input type="text" id="quantidadeProduto" name="quantidadeProduto" placeholder="Digite a quantidade" required>
+
+        <button type="submit" class="add-button">Adicionar</button>
+    </form>
+
+    <div id="mensagem" class="message"></div>
+</div>
+
+<script>
+    // Seleciona o elemento do select para os produtos
+    const selectProdutos = document.getElementById('nomeProduto');
+    const mensagem = document.getElementById('mensagem');
+    const form = document.getElementById('produtoForm');
+
+    // Função para carregar produtos do backend
+    async function carregarProdutos() {
+        try {
+            const response = await fetch('/bebidas'); // Endpoint para obter a lista de produtos
+            if (response.ok) {
+                const produtos = await response.json();
+                produtos.forEach(produto => {
+                    const option = document.createElement('option');
+                    option.value = produto.nome; // Assume que "nome" é o identificador único do produto
+                    option.textContent = produto.nome;
+                    selectProdutos.appendChild(option);
+                });
+            } else {
+                console.error('Erro ao carregar produtos:', response.status);
+                mensagem.textContent = 'Erro ao carregar produtos.';
+                mensagem.className = 'message error';
+            }
+        } catch (error) {
+            console.error('Erro na requisição:', error);
+            mensagem.textContent = 'Erro ao conectar com o servidor.';
+            mensagem.className = 'message error';
+        }
+    }
+
+    // Função para enviar os dados do formulário
+    form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const idComanda = document.getElementById('idComanda').value;
+    const nomeProduto = document.getElementById('nomeProduto').value;
+    const quantidadeProduto = document.getElementById('quantidadeProduto').value;
+
+    try {
+        const response = await fetch('/itens-comanda', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                idComanda,
+                nomeProduto,
+                quantidadeProduto
+            })
+        });
+
+        if (response.ok) {
+            mensagem.textContent = 'Produto adicionado com sucesso!';
+            mensagem.className = 'message success';
+            form.reset(); // Limpa o formulário
+        } else {
+            const erroJson = await response.json(); // Extrai o JSON da resposta
+            mensagem.textContent = `Erro: ${erroJson.message}`; // Exibe apenas o campo "message"
+            mensagem.className = 'message error';
+        }
+    } catch (error) {
+        console.error('Erro ao adicionar o produto:', error);
+        mensagem.textContent = 'Erro ao conectar com o servidor.';
+        mensagem.className = 'message error';
+    }
+});
+
+    // Chama a função para carregar os produtos ao carregar a página
+    carregarProdutos();
+</script>
+</body>
+</html>

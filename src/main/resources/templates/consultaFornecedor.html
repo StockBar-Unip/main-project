@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Bar - Estoque</title>
+  <style>
+    /* Mesma estilização original */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background-color: #f8f9fa;
+        text-align: center;
+        padding-top: 20px;
+    }
+
+    .container {
+        width: 80%;
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .inicio {
+        background-color: #e0e0e0;
+        border: none;
+        padding: 8px 15px;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 14px;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+    }
+
+    .inicio:hover {
+        background-color: #d6d6d6;
+    }
+
+    .inicio::before {
+        content: "⬅";
+        margin-right: 5px;
+    }
+
+    h1 {
+        font-size: 26px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    p {
+        font-size: 16px;
+        color: #555;
+        margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-color: #c4c4c4;
+        color: black;
+        font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Botão início com redirecionamento -->
+<a href="/telaConsulta" class="inicio">Início</a>
+
+<!-- Conteúdo -->
+<div class="container">
+  <h1>STOCK BAR</h1>
+  <p>Verifique o estoque atual:</p>
+
+  <table>
+    <thead>
+    <tr>
+      <th>Fornecedor</th>
+      <th>Telefone</th>
+      <th>Email</th>
+    </tr>
+    </thead>
+    <tbody id="estoque-tbody">
+    <!-- Conteúdo preenchido dinamicamente via JavaScript -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // URL do endpoint
+  const url = 'http://localhost:8080/fornecedores';
+
+  // Elemento do corpo da tabela
+  const tbody = document.getElementById('estoque-tbody');
+
+  // Função para formatar o número de telefone
+  function formatarTelefone(numero) {
+    // Remove caracteres não numéricos
+    const apenasNumeros = numero.replace(/\D/g, '');
+
+    // Aplica a formatação (xx) xxxxx-xxxx
+    const formatado = `(${apenasNumeros.substring(0, 2)}) ${apenasNumeros.substring(2, 7)}-${apenasNumeros.substring(7, 11)}`;
+    return formatado;
+  }
+
+  // Função para buscar e preencher a tabela
+  async function carregarFornecedores() {
+    try {
+      // Fazendo a requisição ao endpoint
+      const resposta = await fetch(url);
+
+      // Verifica se o status da resposta é OK (200) ou No Content (204)
+      if (resposta.status === 204) {
+        tbody.innerHTML = `<tr><td colspan="3">Nenhum fornecedor cadastrado.</td></tr>`;
+        return;
+      }
+
+      // Converte a resposta em JSON
+      const fornecedores = await resposta.json();
+
+      // Itera sobre os fornecedores e cria as linhas da tabela
+      fornecedores.forEach(fornecedor => {
+        const linha = `
+          <tr>
+            <td>${fornecedor.nome}</td>
+            <td>${formatarTelefone(fornecedor.telefone)}</td>
+            <td>${fornecedor.email}</td>
+          </tr>
+        `;
+        tbody.innerHTML += linha;
+      });
+    } catch (erro) {
+      console.error('Erro ao carregar fornecedores:', erro);
+      tbody.innerHTML = `<tr><td colspan="3">Erro ao carregar os dados.</td></tr>`;
+    }
+  }
+
+  // Chama a função quando a página carrega
+  document.addEventListener('DOMContentLoaded', carregarFornecedores);
+</script>
+</body>
+</html>

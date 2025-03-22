@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Fornecedores - Stock Bar</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        width: 400px;
+        background: white;
+        padding: 20px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    label {
+        width: 100%;
+        text-align: left;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    button {
+        background: black;
+        color: white;
+        padding: 10px;
+        width: 100%;
+        margin-top: 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button:hover {
+        background: #333;
+    }
+
+    .error {
+        color: red;
+        font-size: 12px;
+        text-align: left;
+        margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Cadastro de Fornecedores</h1>
+  <form id="fornecedorForm" novalidate>
+    <label for="nomeFornecedor">Nome do fornecedor:</label>
+    <input type="text" id="nomeFornecedor" name="nome" placeholder="Digite o nome do fornecedor" required />
+    <p class="error" id="nomeError"></p>
+
+    <label for="telefoneFornecedor">Telefone:</label>
+    <input
+            type="text"
+            id="telefoneFornecedor"
+            name="telefone"
+            placeholder="Digite o telefone"
+            maxlength="15"
+            oninput="aplicarMascaraTelefone(event)" />
+    <p class="error" id="telefoneError"></p>
+
+    <label for="emailFornecedor">E-mail:</label>
+    <input type="email" id="emailFornecedor" name="email" placeholder="Digite o e-mail" required />
+    <p class="error" id="emailError"></p>
+
+    <button type="button" id="cadastrarButton">Cadastrar</button>
+  </form>
+</div>
+
+<script>
+  // Função para aplicar a máscara de telefone enquanto o usuário digita
+  function aplicarMascaraTelefone(event) {
+      const input = event.target;
+      let telefone = input.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+      telefone = telefone.substring(0, 11); // Garante no máximo 11 dígitos para respeitar maxlength
+      telefone = telefone.replace(/^(\d{2})(\d)/g, '($1) $2'); // Adiciona parênteses
+      telefone = telefone.replace(/(\d{5})(\d)/, '$1-$2'); // Adiciona o hífen
+      input.value = telefone;
+  }
+
+  document.getElementById("cadastrarButton").addEventListener("click", function () {
+      const nome = document.getElementById("nomeFornecedor").value.trim();
+      const telefoneMascarado = document.getElementById("telefoneFornecedor").value.trim();
+      const email = document.getElementById("emailFornecedor").value.trim();
+
+      // Remove a formatação do telefone antes de validar e enviar
+      const telefone = telefoneMascarado.replace(/\D/g, '');
+
+      // Limpa mensagens de erro anteriores
+      document.getElementById("nomeError").textContent = "";
+      document.getElementById("telefoneError").textContent = "";
+      document.getElementById("emailError").textContent = "";
+
+      let valid = true;
+
+      // Validações no front-end
+      if (!nome) {
+          document.getElementById("nomeError").textContent = "O nome do fornecedor é obrigatório.";
+          valid = false;
+      }
+
+      if (!telefone.match(/^\d{11}$/)) {
+          document.getElementById("telefoneError").textContent = "O telefone deve conter 11 dígitos (xx) xxxxx-xxxx.";
+          valid = false;
+      }
+
+      if (!email.match(/^\S+@\S+\.\S+$/)) {
+          document.getElementById("emailError").textContent = "Por favor, insira um e-mail válido.";
+          valid = false;
+      }
+
+      if (!valid) {
+          alert("Por favor, corrija os erros destacados antes de enviar.");
+          return;
+      }
+
+      // Apenas faz a requisição se todos os campos forem válidos
+      const fornecedor = { nome, telefone, email };
+
+      fetch("http://localhost:8080/fornecedores", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(fornecedor),
+      })
+          .then(response => {
+              if (response.ok) {
+                  alert("Fornecedor cadastrado com sucesso!");
+                  document.getElementById("fornecedorForm").reset();
+              } else {
+                  alert("Erro ao cadastrar o fornecedor. Por favor, tente novamente.");
+              }
+          })
+          .catch(error => {
+              console.error("Erro de conexão:", error);
+              alert("Erro de conexão com o servidor. Tente novamente.");
+          });
+  });
+</script>
+</body>
+</html>

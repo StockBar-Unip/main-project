@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Bar</title>
+    <script src="https://cdn.jsdelivr.net/npm/angular@1.8.2/angular.min.js"></script>
+    <style>
+        /* Estilos Gerais */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container Principal */
+        .container {
+            width: 80%;
+            max-width: 900px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Botão de Voltar */
+        .back-button {
+            background-color: #ddd;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            text-decoration: none;
+            color: black;
+        }
+
+        .back-button:hover {
+            background-color: #bbb;
+        }
+
+        /* Cabeçalho */
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Estilo da Tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background-color: #ddd;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ccc;
+            font-weight: bold;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e6e6e6;
+        }
+    </style>
+</head>
+<body ng-app="stockApp" ng-controller="StockController">
+
+<div class="container">
+    <a th:href="@{/telaConsulta}" class="back-button">&#8592; Início</a>
+    <h1>STOCK BAR</h1>
+    <p>Verifique o estoque atual:</p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Quantidade</th>
+            <th>Fornecedor</th>
+            <th>Preço Venda</th>
+        </tr>
+        </thead>
+        <tbody id="estoque-tbody">
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+<script>
+    const urlEstoque = 'http://localhost:8080/bebidas';
+
+    // Elemento do corpo da tabela
+    const tbody = document.getElementById('estoque-tbody');
+
+    // Função para formatar o preço no padrão R$ xxx,xx
+    function formatarPreco(preco) {
+        return `R$ ${parseFloat(preco).toFixed(2).replace('.', ',')}`;
+    }
+
+    // Função para buscar e preencher a tabela de bebidas no estoque
+    async function carregarEstoque() {
+        try {
+            // Fazendo a requisição ao endpoint
+            const resposta = await fetch(urlEstoque);
+
+            // Verifica se o status da resposta não é bem-sucedido
+            if (!resposta.ok) {
+                throw new Error(`Erro HTTP: ${resposta.status}`);
+            }
+
+            // Converte a resposta em JSON
+            const bebidas = await resposta.json();
+
+            // Verifica se a lista de bebidas está vazia
+            if (bebidas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4">Nenhuma bebida em estoque.</td></tr>`;
+                return;
+            }
+
+            // Itera sobre as bebidas e cria as linhas da tabela
+            bebidas.forEach(bebida => {
+                const linha = `
+                    <tr>
+                      <td>${bebida.nome}</td>
+                      <td>${bebida.quantidadeEstoque}</td>
+                      <td>${bebida.fornecedor.nome}</td>
+                      <td>${formatarPreco(bebida.precoUnitario)}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += linha;
+            });
+        } catch (erro) {
+            console.error('Erro ao carregar estoque:', erro);
+            tbody.innerHTML = `<tr><td colspan="4">Erro ao carregar os dados do estoque.</td></tr>`;
+        }
+    }
+
+    // Chama a função ao carregar a página
+    document.addEventListener('DOMContentLoaded', carregarEstoque);
+</script>

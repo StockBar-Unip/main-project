@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt" ng-app="stockBarApp">
+<head>
+  <meta charset="UTF-8">
+  <title>Stock Bar</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f8f8;
+    }
+    .inicio-button {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: white;
+        color: black;
+        border: 1px solid #ccc;
+        padding: 5px 12px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+    }
+    .inicio-button::before {
+        content: '\2190';
+        margin-right: 6px;
+        font-size: 16px;
+    }
+    .container {
+        width: 80%;
+        margin: auto;
+        text-align: center;
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 10px;
+        text-align: center;
+    }
+    th {
+        background-color: #ddd;
+    }
+    input[type="text"] {
+        width: 60%;
+        padding: 5px;
+        margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+<button class="back-button top-bar">
+  <a data-th-href="@{/index}">
+    &#8592; Inicio
+  </a>
+</button><div class="container">
+  <h1>STOCK BAR</h1>
+  <p>Consulte as comandas ativas</p>
+  <div id="mensagemVazia"></div>
+
+  <table id="comandasTable">
+    <thead>
+    <tr>
+      <th>Comanda</th>
+      <th>Usuário</th>
+      <th>Produto</th>
+      <th>Quantidade</th>
+      <th>Preço</th>
+      <th>Total</th>
+    </tr>
+    </thead>
+    <tbody id="tabelaComandas">
+    <!-- Conteúdo dinâmico será populado aqui -->
+    </tbody>
+  </table>
+</div>
+
+
+<script>
+  async function carregarComandas() {
+    try {
+        const response = await fetch('/comandas');
+        const tabelaComandas = document.getElementById('tabelaComandas');
+        const mensagemVazia = document.getElementById('mensagemVazia');
+        const tabela = document.getElementById('comandasTable');
+
+        if (response.status === 204) {
+            tabela.style.display = "none";
+            mensagemVazia.innerHTML = `<p class="empty-message">Não há nenhuma comanda cadastrada no sistema.</p>`;
+        } else if (response.ok) {
+            const comandas = await response.json();
+            tabela.style.display = "table";
+            mensagemVazia.innerHTML = "";
+
+            let conteudo = '';
+            comandas.forEach(comanda => {
+                // Renderiza os itens da comanda primeiro
+                if (comanda.itens && comanda.itens.length > 0) {
+                    comanda.itens.forEach(item => {
+                        conteudo += `
+                            <tr>
+                                <td>${comanda.numeroComanda || ""}</td>
+                                <td>${comanda.cliente || ""}</td>
+                                <td>${item.bebida.nome || ""}</td>
+                                <td>${item.quantidade || ""}</td>
+                                <td>R$ ${item.bebida.precoUnitario.toFixed(2)}</td>
+                                <td>R$ ${(item.quantidade * item.bebida.precoUnitario).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    // Caso não tenha itens, renderiza uma linha vazia para a comanda
+                    conteudo += `
+                        <tr>
+                            <td>${comanda.numeroComanda || ""}</td>
+                            <td>${comanda.cliente || ""}</td>
+                            <td colspan="4" style="text-align: center;">Nenhum item nesta comanda</td>
+                        </tr>
+                    `;
+                }
+
+                // Só adiciona o Total da Comanda após listar todos os itens
+                conteudo += `
+                    <tr style="font-weight: bold; background-color: #f0f0f0;">
+                        <td colspan="5" style="text-align: right;">Total da Comanda:</td>
+                        <td>R$ ${comanda.total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            if (conteudo === '') {
+                tabela.style.display = "none";
+                mensagemVazia.innerHTML = `<p class="empty-message">Não há itens nas comandas.</p>`;
+            } else {
+                tabelaComandas.innerHTML = conteudo;
+            }
+        } else {
+            console.error('Erro ao buscar comandas:', response.status);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar comandas:', error);
+    }
+}
+
+carregarComandas();
+
+</script>
+
+
+</body>
+</html>

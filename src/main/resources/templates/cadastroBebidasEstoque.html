@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Bar</title>
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Container principal */
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 450px;
+            margin: auto;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        /* Botão de voltar */
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            color: black;
+        }
+
+        .back-button:hover {
+            background: #eee;
+        }
+
+        /* Título principal */
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Texto abaixo do título */
+        p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        /* Formulário */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            font-size: 14px;
+            align-self: flex-start;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        /* Campos de entrada */
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        select {
+            width: 105%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        input.error, select.error {
+            border: 2px solid red;
+            background-color: #ffe6e6;
+        }
+
+        /* Botão de adicionar */
+        .submit-button {
+            background-color: black;
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .submit-button:hover {
+            background-color: #333;
+        }
+
+        /* Estilo para mensagens de erro */
+        .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            text-align: left;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="back-button" href="/index">&#8592; Início</a>
+    <h1>STOCK BAR</h1>
+    <p>Adicione os novos produtos</p>
+
+    <form id="bebidaForm">
+        <label for="nomeProduto">Nome do produto:</label>
+        <input type="text" id="nomeProduto" placeholder="Digite o nome do produto">
+        <span id="nomeError" class="error-message"></span>
+
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade" placeholder="Digite a quantidade">
+        <span id="quantidadeError" class="error-message"></span>
+
+        <label for="precoProduto">Valor do produto:</label>
+        <input type="text" id="precoProduto" placeholder="Digite o valor do produto">
+        <span id="precoError" class="error-message"></span>
+
+        <label for="nomeFornecedor">Fornecedor:</label>
+        <select id="nomeFornecedor">
+            <option value="">Selecione um fornecedor</option>
+        </select>
+        <span id="fornecedorError" class="error-message"></span>
+
+        <button type="button" class="submit-button" id="cadastrarButton">Cadastrar</button>
+    </form>
+</div>
+
+<script>
+    // URL do endpoint para buscar fornecedores
+    const urlFornecedores = 'http://localhost:8080/fornecedores';
+
+    // Função para carregar fornecedores no <select>
+    async function carregarFornecedores() {
+    try {
+        const response = await fetch(urlFornecedores);
+        if (!response.ok) throw new Error("Erro ao buscar fornecedores.");
+
+        const fornecedores = await response.json();
+
+        if (fornecedores.length === 0) {
+            alert("A lista de fornecedores está vazia. Cadastre primeiro um fornecedor, depois uma bebida.");
+            return;
+        }
+
+        const selectFornecedor = document.getElementById("nomeFornecedor");
+
+        fornecedores.forEach(fornecedor => {
+            const option = document.createElement("option");
+            option.value = fornecedor.id;
+            option.textContent = fornecedor.nome;
+            selectFornecedor.appendChild(option);
+        });
+    } catch (erro) {
+        console.error("Erro ao carregar fornecedores:", erro);
+        alert("Erro ao carregar a lista de fornecedores.");
+    }
+}
+
+    // Função para formatar o valor do produto no padrão R$ xxx,xx
+function aplicarMascaraValor(event) {
+    const input = event.target;
+
+    // Remove todos os caracteres que não sejam números
+    let valor = input.value.replace(/\D/g, '');
+
+    // Limita o valor a 11 dígitos para evitar entradas muito grandes
+    if (valor.length > 11) {
+        valor = valor.substring(0, 11);
+    }
+
+    // Divide o valor entre reais e centavos
+    const reais = valor.slice(0, -2); // Tudo antes dos últimos 2 dígitos
+    const centavos = valor.slice(-2); // Os últimos 2 dígitos
+
+    // Atualiza o valor no campo com o formato "R$ xxx,xx"
+    if (valor.length <= 2) {
+        // Caso o número seja menor que 2 dígitos, apenas exibe centavos (ex.: R$ 0,xx)
+        input.value = `R$ 0,${valor.padStart(2, '0')}`;
+    } else {
+        input.value = `R$ ${parseInt(reais).toLocaleString() || '0'},${centavos}`;
+    }
+}
+
+    // Função para validar o valor do produto
+    function validarValorProduto() {
+        const precoProdutoInput = document.getElementById("precoProduto");
+        const precoError = document.getElementById("precoError");
+
+        const valor = precoProdutoInput.value.replace(/[^\d,]/g, '');
+        const partes = valor.split(',');
+
+        precoProdutoInput.classList.remove("error");
+        precoError.textContent = "";
+
+        if (partes.length !== 2 || partes[1].length !== 2) {
+            precoProdutoInput.classList.add("error");
+            precoError.textContent = "O preço deve estar no formato R$ xxx,xx.";
+            return false;
+        }
+
+        return true;
+    }
+
+    // Função principal de validação do formulário
+    function validarFormulario() {
+        const nomeProdutoInput = document.getElementById("nomeProduto");
+        const quantidadeInput = document.getElementById("quantidade");
+        const precoProdutoInput = document.getElementById("precoProduto");
+        const fornecedorSelect = document.getElementById("nomeFornecedor");
+
+        let valid = true;
+
+        // Limpa mensagens e estilos de erro anteriores
+        document.querySelectorAll(".error-message").forEach(error => error.textContent = "");
+        document.querySelectorAll("input, select").forEach(field => field.classList.remove("error"));
+
+        // Validação do nome do produto
+        if (!nomeProdutoInput.value.trim()) {
+            valid = false;
+            nomeProdutoInput.classList.add("error");
+            document.getElementById("nomeError").textContent = "O nome do produto é obrigatório.";
+        }
+
+        // Validação da quantidade
+        if (!quantidadeInput.value.trim() || isNaN(quantidadeInput.value.trim()) || quantidadeInput.value <= 0) {
+            valid = false;
+            quantidadeInput.classList.add("error");
+            document.getElementById("quantidadeError").textContent = "A quantidade deve ser maior que zero.";
+        }
+
+        // Validação do valor do produto
+        if (!validarValorProduto()) {
+            valid = false;
+        }
+
+        // Validação do fornecedor
+        if (!fornecedorSelect.value) {
+            valid = false;
+            fornecedorSelect.classList.add("error");
+            document.getElementById("fornecedorError").textContent = "Selecione um fornecedor.";
+        }
+
+        return valid;
+    }
+    // Função para enviar os dados do formulário ao backend
+    function enviarFormulario() {
+    if (!validarFormulario()) {
+    alert("Corrija os erros antes de enviar!");
+    return;
+    }
+
+    const nomeProdutoInput = document.getElementById("nomeProduto");
+    const quantidadeInput = document.getElementById("quantidade");
+    const precoProdutoInput = document.getElementById("precoProduto");
+    const fornecedorSelect = document.getElementById("nomeFornecedor");
+
+    // Extrai o valor do campo de preço, removendo a máscara
+    const precoSemMascara = precoProdutoInput.value.replace(/[^\d,]/g, '').replace(',', '.');
+
+    const dados = {
+    nome: nomeProdutoInput.value.trim(),
+    quantidadeEstoque: parseInt(quantidadeInput.value.trim()),
+    precoUnitario: parseFloat(precoSemMascara),
+    fornecedor: { id: parseInt(fornecedorSelect.value) }
+    };
+
+    fetch("/bebidas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados)
+    })
+    .then(response => {
+    if (response.ok) {
+    alert("Produto cadastrado com sucesso!");
+    document.getElementById("bebidaForm").reset();
+    } else {
+    alert("Erro ao cadastrar o produto. Por favor, tente novamente.");
+    }
+    })
+    .catch(error => {
+    console.error("Erro:", error);
+    alert("Erro de conexão com o servidor.");
+    });
+    }
+
+    // Inicializa as funções ao carregar a página
+    document.addEventListener("DOMContentLoaded", function () {
+    carregarFornecedores();
+
+    // Aplica a máscara ao campo de preço
+    document.getElementById("precoProduto").addEventListener("input", aplicarMascaraValor);
+
+    // Adiciona o evento ao botão de envio
+    document.getElementById("cadastrarButton").addEventListener("click", enviarFormulario);
+    });
+    </script>
